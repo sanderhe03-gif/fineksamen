@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FIN 3522 — Exam Trainer</title>
+<style>
+  :root {
+    --bg: #0f1626;
+    --bg-2: #131c30;
+    --card: #1a2440;
+    --card-2: #213056;
+    --line: #2a3a64;
+    --text: #e7ecf6;
+    --muted: #97a3c2;
+    --accent: #6ea8ff;
+    --accent-2: #8a7bff;
+    --good: #4ade80;
+    --good-bg: #0e3a25;
+    --bad: #ef4444;
+    --bad-bg: #3b1414;
+    --warn: #fbbf24;
+    --shadow: 0 10px 35px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+    background: radial-gradient(1200px 800px at 10% -10%, #1a2547 0%, var(--bg) 60%) fixed;
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 28px 20px 60px; }
+  header h1 {
+    font-size: 26px; margin: 0 0 4px; letter-spacing: .2px;
+    background: linear-gradient(90deg, #cfe0ff, #a18bff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header .sub { color: var(--muted); font-size: 13px; }
+
+  .card {
+    background: linear-gradient(180deg, var(--card), var(--card-2));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-top: 18px;
+  }
+
+  .pill { display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(110,168,255,.12); color: var(--accent);
+    border: 1px solid rgba(110,168,255,.3);
+    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .pill.warn { background: rgba(251,191,36,.12); color: var(--warn); border-color: rgba(251,191,36,.35); }
+  .pill.good { background: rgba(74,222,128,.12); color: var(--good); border-color: rgba(74,222,128,.35); }
+  .pill.muted { background: rgba(151,163,194,.1); color: var(--muted); border-color: rgba(151,163,194,.25); }
+
+  h2 { font-size: 19px; margin: 0 0 10px; }
+  h3 { font-size: 15px; margin: 16px 0 6px; color: var(--accent); }
+  p { line-height: 1.55; color: #cfd6e8; }
+  small { color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  .mode {
+    display: block; text-align: left; cursor: pointer;
+    background: rgba(255,255,255,.02);
+    border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px;
+    transition: transform .12s, border-color .12s, background .12s;
+  }
+  .mode:hover { transform: translateY(-1px); border-color: var(--accent); background: rgba(110,168,255,.06); }
+  .mode .title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .mode .desc { color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+
+  button {
+    font-family: inherit; cursor: pointer; border: none; border-radius: 10px;
+    padding: 10px 16px; font-weight: 600; font-size: 14px; transition: all .12s;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0b1024; }
+  .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+  .progress { height: 8px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; }
+  .progress > div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .stat { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  .stat strong { color: var(--text); }
+
+  .qtext { font-size: 17px; line-height: 1.45; margin: 16px 0 8px; }
+  .examtag { color: var(--warn); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+  .options { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;
+    background: rgba(255,255,255,.02); border: 1px solid var(--line);
+    border-radius: 10px; cursor: pointer; transition: all .12s; text-align: left;
+    color: var(--text); font-size: 14px; line-height: 1.45;
+  }
+  .opt:hover { border-color: var(--accent); background: rgba(110,168,255,.05); }
+  .opt.selected { border-color: var(--accent); background: rgba(110,168,255,.1); }
+  .opt.correct { border-color: var(--good); background: var(--good-bg); }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-bg); }
+  .opt .marker {
+    flex: 0 0 22px; width: 22px; height: 22px; border-radius: 6px;
+    border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--muted);
+  }
+  .opt.selected .marker { border-color: var(--accent); color: var(--accent); }
+  .opt.correct .marker { border-color: var(--good); color: var(--good); }
+  .opt.wrong .marker { border-color: var(--bad); color: var(--bad); }
+
+  .conf { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .conf button { padding: 6px 11px; font-size: 12px; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; }
+  .conf button.active { color: var(--text); border-color: var(--accent); background: rgba(110,168,255,.1); }
+
+  input[type="number"], input[type="text"] {
+    background: rgba(0,0,0,.25); border: 1px solid var(--line);
+    color: var(--text); font-family: inherit; font-size: 16px;
+    padding: 10px 14px; border-radius: 10px; width: 220px;
+  }
+  input[type="number"]:focus, input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+  .feedback {
+    margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+    border-left: 4px solid var(--accent);
+    background: rgba(110,168,255,.06);
+    font-size: 14px; line-height: 1.55;
+  }
+  .feedback.good { border-left-color: var(--good); background: rgba(74,222,128,.06); }
+  .feedback.bad  { border-left-color: var(--bad);  background: rgba(239,68,68,.06); }
+  .feedback h4 { margin: 0 0 6px; font-size: 14px; }
+  .feedback .work { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: #cfd6e8; background: rgba(0,0,0,.25); padding: 8px 10px; border-radius: 8px; margin-top: 6px; white-space: pre-wrap; }
+
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+
+  .grade {
+    text-align: center; padding: 18px 0;
+  }
+  .grade .letter {
+    font-size: 84px; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .grade .pct { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  td.bar { width: 40%; }
+  .bar-inner { height: 6px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; }
+  .bar-inner > div { height: 100%; background: linear-gradient(90deg, var(--good), #2dd4bf); }
+
+  .kbd { font-family: ui-monospace, monospace; background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+
+  .hidden { display: none !important; }
+  .fade-in { animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+  .legend .l1::before { background: #5a6ea0; }
+  .legend .l2::before { background: #6ea8ff; }
+  .legend .l3::before { background: #8a7bff; }
+  .legend .l4::before { background: #c084fc; }
+  .legend .l5::before { background: var(--good); }
+
+  .leitner { display: flex; gap: 6px; margin-top: 8px; }
+  .leitner .box { flex: 1; height: 26px; border-radius: 6px; background: rgba(255,255,255,.04); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); border: 1px solid var(--line); }
+  .leitner .box.b1 { background: rgba(90,110,160,.2); }
+  .leitner .box.b2 { background: rgba(110,168,255,.2); }
+  .leitner .box.b3 { background: rgba(138,123,255,.2); }
+  .leitner .box.b4 { background: rgba(192,132,252,.2); }
+  .leitner .box.b5 { background: rgba(74,222,128,.25); color: var(--good); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>FIN 3522 — Markets &amp; Institutions Trainer</h1>
+  <div class="sub">An evidence-based exam game. 100% in Mastery Mode = A-grade readiness.</div>
+</header>
+
+<!-- ============ HOME ============ -->
+<section id="home" class="card fade-in">
+  <h2>Pick a mode</h2>
+  <p style="margin-top:0;color:var(--muted);font-size:13.5px">
+    Each mode uses techniques the cognitive-science literature ranks at the top for retention:
+    <strong>active recall</strong> (you generate the answer), <strong>immediate feedback with explanation</strong>,
+    <strong>spaced repetition</strong> (Leitner boxes — items you miss come back faster),
+    <strong>interleaving</strong> (topics are mixed, not blocked), <strong>desirable difficulty</strong>
+    (multi-select &amp; numeric input rather than easy MC), and <strong>confidence calibration</strong>
+    (rate yourself before you answer).
+  </p>
+
+  <div class="grid" style="margin-top:14px">
+    <button class="mode" data-mode="lightning">
+      <div class="title">⚡ Lightning Round</div>
+      <div class="desc">15 random questions across all topics. Fast warm-up.</div>
+    </button>
+    <button class="mode" data-mode="mastery">
+      <div class="title">🎯 Mastery Mode <span class="pill good" style="margin-left:6px">A-grade target</span></div>
+      <div class="desc">Spaced repetition Leitner system. Every question must be answered correctly twice in a row before it leaves the queue. Finish this with 100% and you're ready.</div>
+    </button>
+    <button class="mode" data-mode="calc">
+      <div class="title">🔢 Calculation Drill</div>
+      <div class="desc">Part B numerical problems only — bond pricing, Sharpe ratio, Fisher equation.</div>
+    </button>
+    <button class="mode" data-mode="exam">
+      <div class="title">📝 Exam Simulation</div>
+      <div class="desc">10 questions matching the recent exam pattern, with a 30-minute timer and full grade conversion.</div>
+    </button>
+  </div>
+
+  <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">
+    <h3 style="margin-top:0">Why these techniques work</h3>
+    <p style="font-size:13px">
+      Roediger &amp; Karpicke (2006) and Dunlosky et al. (2013) ranked <strong>practice testing</strong> and
+      <strong>distributed practice</strong> as the two most effective learning strategies — far above re-reading or
+      highlighting. This trainer combines both with the Leitner box system (Leitner, 1972), which puts more weight on
+      items you struggle with. The confidence rating step is from Bjork's research on metacognition: forcing a
+      self-prediction before the answer reveals where you're <em>over</em>confident, which is exactly where exam mistakes
+      come from.
+    </p>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="card hidden">
+  <div class="topbar">
+    <div class="stat"><span class="pill" id="modePill">MODE</span></div>
+    <div class="stat" id="timer"></div>
+    <div class="stat">Score <strong id="scoreText">0</strong></div>
+  </div>
+  <div class="progress" style="margin-top:10px"><div id="progBar" style="width:0%"></div></div>
+  <div class="legend" id="leitnerLegend" style="display:none">
+    <span class="l1">Box 1 (new)</span>
+    <span class="l2">Box 2</span>
+    <span class="l3">Box 3</span>
+    <span class="l4">Box 4</span>
+    <span class="l5">Box 5 (mastered)</span>
+  </div>
+  <div class="leitner" id="leitnerBoxes" style="display:none"></div>
+
+  <div id="qBlock"></div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section id="results" class="card hidden">
+  <h2>Session complete</h2>
+  <div class="grade">
+    <div class="letter" id="gradeLetter">A</div>
+    <div class="pct" id="gradePct">100%</div>
+    <div class="pill" id="gradeNote" style="margin-top:8px">Exam-ready</div>
+  </div>
+
+  <h3>Topic-by-topic accuracy</h3>
+  <table id="topicTable"></table>
+
+  <h3>Calibration check</h3>
+  <p style="font-size:13px;margin-top:0">When you said "high confidence" but got it wrong, that's an exam trap waiting to happen. Review these first.</p>
+  <div id="overconfList" style="font-size:13.5px"></div>
+
+  <h3>Re-test the items you missed</h3>
+  <p style="font-size:13px;margin-top:0">Active retrieval after a delay is what cements the knowledge. The "missed-only" replay below trains exactly the right material.</p>
+
+  <div class="row">
+    <button class="btn-primary" id="replayMissed">Replay missed items only</button>
+    <button class="btn-ghost" id="backHome">Back to home</button>
+  </div>
+</section>
+
+<footer style="margin-top:30px;color:var(--muted);font-size:12px;text-align:center">
+  Built for Sander • Based on the FIN 3522 English compendium • Press <span class="kbd">1-9</span> to pick options, <span class="kbd">Enter</span> to submit
+</footer>
+</div>
+
+<script>
+/* =========================================================================
+   QUESTION BANK
+   types:
+     'mc'      single-correct multiple choice
+     'multi'   multi-select (must pick exactly the correct subset)
+     'numeric' numeric input (with tolerance)
+     'short'   one-word fill-in (string compare, lowercased)
+   topics map to compendium parts
+   ========================================================================= */
+
+const Q = [
+/* ---------- PART 1 ---------- */
+{id:'p1.1', topic:'Markets & Allocation', diff:1, type:'mc',
+  q:'What is a financial market?',
+  options:[
+    'A subsidy program run by central banks to support firms',
+    'A structured arena where financial assets are bought and sold, matching savers with borrowers',
+    'A government registry of all listed companies',
+    'A clearing house for tax payments'
+  ], correct:1,
+  expl:'A financial market is a structured arena where financial assets (stocks, bonds, derivatives, currencies) are bought and sold. Its job is to match surplus units (savers) with deficit units (borrowers).'},
+
+{id:'p1.2', topic:'Markets & Allocation', diff:2, type:'multi',
+  q:'Pick ALL six core roles of financial markets.',
+  options:[
+    'Capital allocation',
+    'Tax collection',
+    'Liquidity',
+    'Risk sharing',
+    'Price discovery',
+    'Information production',
+    'Consumption smoothing',
+    'Currency printing'
+  ], correct:[0,2,3,4,5,6],
+  expl:'The six roles: (1) capital allocation, (2) liquidity, (3) risk sharing, (4) price discovery, (5) information production, (6) consumption smoothing. Tax and money-printing are state functions, not market roles.',
+  examTag:'Fall 2024 A1, Spring 2025 A1'},
+
+{id:'p1.3', topic:'Markets & Allocation', diff:1, type:'mc',
+  q:'In direct finance, who stands between borrower and lender?',
+  options:['A bank','A pension fund','Nobody — the borrower sells securities directly to investors','The central bank'],
+  correct:2,
+  expl:'Direct finance = no intermediary. The borrower issues a security (e.g. a bond) sold straight to an investor. Indirect finance involves an intermediary like a bank.'},
+
+{id:'p1.4', topic:'Markets & Allocation', diff:2, type:'multi',
+  q:'Asset transformation by intermediaries operates on which dimensions? (Pick all that apply)',
+  options:['Size','Maturity','Risk','Liquidity','Information','Currency denomination only','Geographic location only'],
+  correct:[0,1,2,3,4],
+  expl:'Banks transform along five dimensions simultaneously: size (many small deposits → big loans), maturity (short deposits → long loans), risk (diversification), liquidity (illiquid loans funded by liquid deposits), and information (screening + monitoring).',
+  examTag:'Spring 2025 A6'},
+
+/* ---------- PART 2 ---------- */
+{id:'p2.1', topic:'Market Structure', diff:1, type:'mc',
+  q:'Which trading venue offers the LEAST pre-trade transparency?',
+  options:['Stock exchange','OTC market','Dark pool','Primary market'],
+  correct:2,
+  expl:'Dark pools deliberately hide orders until matched. Exchanges have fully visible order books; OTC sits in between. Dark pools exist so big institutions can trade large volumes without moving the price (price impact).'},
+
+{id:'p2.2', topic:'Market Structure', diff:1, type:'mc',
+  q:'Which order GUARANTEES execution but not price?',
+  options:['Limit order','Market order','Stop order','Iceberg order'],
+  correct:1,
+  expl:'A market order trades immediately at the best available price → execution guaranteed, price not. A limit order is the opposite: price guaranteed (or better), execution not.'},
+
+{id:'p2.3', topic:'Market Structure', diff:2, type:'mc',
+  q:'Which orders PROVIDE liquidity to the market?',
+  options:['Market orders','Limit orders','Both equally','Neither'],
+  correct:1,
+  expl:'Limit orders sit in the order book and provide liquidity. Market orders take from the book and consume liquidity. This is why exchanges often pay rebates to limit-order posters and charge fees to market-order takers.'},
+
+{id:'p2.4', topic:'Market Structure', diff:1, type:'mc',
+  q:'A dealer differs from a broker because the dealer:',
+  options:[
+    'Only works with retail clients',
+    'Trades for its own account, holds inventory, and earns the bid-ask spread',
+    'Cannot legally hold securities',
+    'Is always a regulated bank'
+  ], correct:1,
+  expl:'Brokers are agents earning commission with no inventory. Dealers are principals — they hold inventory, quote bid/ask, and earn the spread (and bear market risk).'},
+
+{id:'p2.5', topic:'Market Structure', diff:2, type:'multi',
+  q:'Pick the FOUR classic dimensions of liquidity.',
+  options:['Tightness','Density','Depth','Volatility','Immediacy','Resiliency','Convexity','Duration'],
+  correct:[0,2,4,5],
+  expl:'The four dimensions: tightness (spread), depth (volume at best price), immediacy (speed of execution), resiliency (how fast price recovers after a big trade). Volatility ≠ liquidity.'},
+
+{id:'p2.6', topic:'Market Structure', diff:2, type:'mc',
+  q:'Why do illiquid assets carry an illiquidity premium?',
+  options:[
+    'Regulators force a higher quoted yield',
+    'Investors demand higher expected return as compensation for the cost and risk of being unable to exit cheaply',
+    'They are tax-disadvantaged',
+    'Their cash flows are higher by definition'
+  ], correct:1,
+  expl:'Liquidity has value: the ability to exit cheaply, rebalance, and react to news. Investors will only hold an illiquid asset if its expected return is higher to compensate.'},
+
+/* ---------- PART 3 ---------- */
+{id:'p3.1', topic:'Stocks', diff:1, type:'mc',
+  q:'What does it mean that a shareholder has a "residual claim"?',
+  options:[
+    'They are paid first if the firm is liquidated',
+    'They get a fixed coupon',
+    'They are paid last — only after all creditors and bondholders',
+    'They share losses with employees pro rata'
+  ], correct:2,
+  expl:'Residual = leftover. Shareholders are at the back of the bankruptcy queue. They get paid only from what is left after employees, suppliers, creditors, and bondholders have been satisfied.'},
+
+{id:'p3.2', topic:'Stocks', diff:2, type:'multi',
+  q:'List the seven canonical characteristics of a common stock. (Pick all 7)',
+  options:[
+    'Ownership / part-owner of firm',
+    'Residual claim',
+    'Limited liability',
+    'Voting rights',
+    'Unlimited maturity (perpetuity)',
+    'Variable cash flow (dividends not guaranteed)',
+    'High volatility',
+    'Fixed coupon',
+    'Senior to bondholders in bankruptcy'
+  ], correct:[0,1,2,3,4,5,6],
+  expl:'The 7: ownership, residual claim, limited liability, voting, perpetuity, variable cash flow, high volatility. The two distractors describe bonds and are flat-out wrong for equity.',
+  examTag:'Fall 2024 A5, Spring 2025 A3'},
+
+{id:'p3.3', topic:'Stocks', diff:1, type:'mc',
+  q:'In bankruptcy, the priority order (paid first → paid last) is:',
+  options:[
+    'Shareholders → Bondholders → Employees',
+    'Employees → Suppliers → Creditors → Bondholders → Shareholders',
+    'Bondholders → Shareholders → Creditors',
+    'Shareholders → Creditors → Bondholders'
+  ], correct:1,
+  expl:'Equity is the residual claim — paid last. Senior creditors and bondholders are ahead of shareholders.'},
+
+{id:'p3.4', topic:'Stocks', diff:2, type:'mc',
+  q:'Limited liability means:',
+  options:[
+    'Shareholders can sue the firm only for limited damages',
+    'Shareholders can lose at most what they invested; personal assets are protected',
+    'The firm has limited liability for product defects',
+    'Dividends are capped'
+  ], correct:1,
+  expl:'Limited liability is the firewall between corporate and personal. The most a shareholder can lose is the price they paid for the share — their house and savings cannot be seized to pay corporate debts.'},
+
+{id:'p3.5', topic:'Stocks', diff:2, type:'mc',
+  q:'IPO underpricing typically means:',
+  options:[
+    'The offer price exceeds the market clearing price; investors lose on day one',
+    'The offer price is below the market value, so shares pop on day one — "money left on the table"',
+    'The firm is forced to refund early subscribers',
+    'The underwriter takes the entire first-day gain'
+  ], correct:1,
+  expl:'Underpricing → first-day pop of typically 15–20%. The firm raised less than it could have. Explanations include compensation for asymmetric information (Rock\'s winner\'s curse), signalling quality, reducing underwriter risk, and rewarding institutions for revealing demand.'},
+
+{id:'p3.6', topic:'Stocks', diff:2, type:'multi',
+  q:'Why is IPO pricing especially difficult? (Pick all that apply)',
+  options:[
+    'No prior market price exists',
+    'Asymmetric information between firm, underwriter, investors',
+    'Demand is unknown until book-building completes',
+    'Market sentiment can shift quickly',
+    'Regulators dictate the exact price',
+    'The firm has no cash flows yet by definition'
+  ], correct:[0,1,2,3],
+  expl:'All four real reasons. Regulators don\'t set IPO prices, and many IPO firms have plenty of cash flow.'},
+
+/* ---------- PART 4 ---------- */
+{id:'p4.1', topic:'Bonds', diff:1, type:'mc',
+  q:'When yield = coupon rate, the bond trades at:',
+  options:['A premium','Par (face value)','A discount','Cannot be determined'],
+  correct:1,
+  expl:'Yield = coupon → price = par. Yield > coupon → discount. Yield < coupon → premium.'},
+
+{id:'p4.2', topic:'Bonds', diff:2, type:'numeric',
+  q:'Zero-coupon bond, F = 100, T = 2, y = 3.2%. What is the price (to 2 decimals)?',
+  correct: 93.90, tol: 0.05,
+  expl:'P = F / (1+y)^T = 100 / 1.032^2 = 100 / 1.064824 ≈ 93.90.',
+  work:'P = 100 / (1.032)^2\n  = 100 / 1.064824\n  ≈ 93.90',
+  examTag:'Spring 2025 B2'},
+
+{id:'p4.3', topic:'Bonds', diff:2, type:'numeric',
+  q:'Coupon bond, F = 100, T = 2, coupon C = 3, y = 3%. What is the price?',
+  correct:100.00, tol:0.05,
+  expl:'When the coupon equals the yield, the bond trades at par.',
+  work:'P = 3/1.03 + 103/(1.03)^2\n  = 2.9126 + 97.0874\n  ≈ 100.00',
+  examTag:'Spring 2025 B2'},
+
+{id:'p4.4', topic:'Bonds', diff:3, type:'numeric',
+  q:'Zero-coupon bond, F = 1000, T = 5, y = 4%. Price?',
+  correct:821.93, tol:0.5,
+  expl:'P = 1000 / 1.04^5 = 1000 / 1.21665 ≈ 821.93.',
+  work:'P = 1000 / (1.04)^5\n  = 1000 / 1.216653\n  ≈ 821.93'},
+
+{id:'p4.5', topic:'Bonds', diff:2, type:'mc',
+  q:'YTM is best described as:',
+  options:[
+    'The current dividend yield',
+    'The IRR that equates the bond\'s discounted cash flows with its current market price',
+    'The coupon rate divided by face value',
+    'The expected return after default'
+  ], correct:1,
+  expl:'YTM is the internal rate of return — the single discount rate that makes the PV of all future coupons + principal equal to today\'s price. It assumes you hold to maturity AND reinvest coupons at YTM.'},
+
+{id:'p4.6', topic:'Bonds', diff:1, type:'mc',
+  q:'Two otherwise identical bonds: one is callable, one is not. Which has the HIGHER yield?',
+  options:['The non-callable','The callable','They have equal yield','Depends on coupon'],
+  correct:1,
+  expl:'The callable one. The issuer\'s call right hurts the investor (reinvestment risk: the bond gets called when rates fall, exactly when it\'s most valuable). To compensate, callable bonds must offer a higher yield (the call premium).'},
+
+{id:'p4.7', topic:'Bonds', diff:2, type:'mc',
+  q:'Two otherwise identical bonds: one is convertible, one is not. Which has the LOWER yield?',
+  options:['The non-convertible','The convertible','They have equal yield','Cannot be determined'],
+  correct:1,
+  expl:'Convertibles have the option (held by the investor) to convert into stock. That option is valuable, so investors accept a lower coupon/yield in exchange.'},
+
+{id:'p4.8', topic:'Bonds', diff:2, type:'mc',
+  q:'Why would an issuer call a bond?',
+  options:[
+    'To punish bondholders who voted against management',
+    'To refinance: market rates have fallen below the bond\'s coupon, so cheaper debt is available',
+    'To meet quarterly earnings targets',
+    'It is required by law every 5 years'
+  ], correct:1,
+  expl:'Issuers call when rates fall. They retire the expensive bond and refinance more cheaply — exactly the move that hurts bondholders, who must reinvest at the now-lower rate.'},
+
+{id:'p4.9', topic:'Bonds', diff:2, type:'multi',
+  q:'Which factors determine interest rates? (Pick all)',
+  options:[
+    'Central bank policy (money supply / demand)',
+    'Inflation expectations (Fisher effect)',
+    'Real economic activity / growth',
+    'The number of public companies',
+    'Risk aversion / flight to quality',
+    'The price of gold'
+  ], correct:[0,1,2,4],
+  expl:'Three categories drive rates: (1) central bank policy, (2) inflation expectations, (3) real activity. Risk aversion shifts demand within these (flight to quality lowers safe yields). Gold and number of listings are not direct drivers.',
+  examTag:'Spring 2025 A4'},
+
+{id:'p4.10', topic:'Bonds', diff:2, type:'numeric',
+  q:'Fisher equation: real rate r = 2%, expected inflation π = 3%. Approximate nominal rate i (in %)?',
+  correct:5.06, tol:0.2,
+  expl:'(1+i) = (1+r)(1+π) = 1.02 × 1.03 = 1.0506 → i ≈ 5.06%. The simple approximation r + π = 5% is also accepted.',
+  work:'(1+i) = 1.02 × 1.03 = 1.0506\ni = 5.06% (approx 5%)'},
+
+{id:'p4.11', topic:'Bonds', diff:2, type:'mc',
+  q:'Which yield curve theory best explains the typical UPWARD slope?',
+  options:[
+    'Pure expectations theory',
+    'Liquidity premium theory',
+    'Market segmentation hypothesis',
+    'Random walk hypothesis'
+  ], correct:1,
+  expl:'Pure expectations explains co-movement but not the persistent upward slope. Liquidity premium adds a maturity premium for tying up capital — explaining why long bonds usually yield more even when no rate changes are expected.'},
+
+{id:'p4.12', topic:'Bonds', diff:3, type:'mc',
+  q:'The market segmentation hypothesis fails to explain:',
+  options:[
+    'Kinks and humps in the yield curve',
+    'Why pension funds buy long bonds',
+    'Why rates across maturities tend to MOVE TOGETHER',
+    'Why short rates can be set by central banks'
+  ], correct:2,
+  expl:'If markets were truly segmented, rates at different maturities would move independently. In practice they co-move strongly — which is the empirical knock against pure segmentation, and why the liquidity-premium theory is preferred.'},
+
+/* ---------- PART 5 ---------- */
+{id:'p5.1', topic:'Risk & Return', diff:1, type:'mc',
+  q:'A risk-averse investor is one who:',
+  options:[
+    'Refuses to invest in anything risky',
+    'Prefers a sure payoff to a risky one with the same expected value',
+    'Always picks the highest-volatility asset',
+    'Never holds bonds'
+  ], correct:1,
+  expl:'Risk aversion = preferring a certain outcome over a risky one with the same expected value. They\'ll take risk, but only if compensated with a risk premium.'},
+
+{id:'p5.2', topic:'Risk & Return', diff:2, type:'multi',
+  q:'Why do risk-averse people still buy risky assets? (Pick all)',
+  options:[
+    'Diversification cuts risk without cutting expected return proportionally',
+    'They get a risk premium as compensation',
+    'Lifetime consumption smoothing requires investing in growth assets',
+    'They are forced to by regulation',
+    'Some investors have higher risk tolerance (younger, wealthier)',
+    'It is illegal to hold only cash'
+  ], correct:[0,1,2,4],
+  expl:'Real reasons: diversification, risk premium, life-cycle planning, heterogeneous risk tolerance. Regulation and illegality of cash-holding are made up.'},
+
+{id:'p5.3', topic:'Risk & Return', diff:2, type:'numeric',
+  q:'Sharpe ratio: E[R] = 8.4%, Rf = 2.5%, σ = 30%. SR = ?',
+  correct:0.197, tol:0.01,
+  expl:'SR = (E[R] − Rf) / σ = (0.084 − 0.025) / 0.30 = 0.059 / 0.30 ≈ 0.197.',
+  work:'SR = (0.084 − 0.025) / 0.30\n   = 0.059 / 0.30\n   ≈ 0.1967',
+  examTag:'Spring 2025 B1'},
+
+{id:'p5.4', topic:'Risk & Return', diff:3, type:'numeric',
+  q:'Portfolio: E[R] = 12%, Rf = 3%, σ = 18%. Sharpe ratio?',
+  correct:0.5, tol:0.01,
+  expl:'SR = (0.12 − 0.03) / 0.18 = 0.09 / 0.18 = 0.5.',
+  work:'SR = (0.12 − 0.03) / 0.18\n   = 0.09 / 0.18\n   = 0.5'},
+
+{id:'p5.5', topic:'Risk & Return', diff:2, type:'mc',
+  q:'Why is there no asset with HIGH return AND LOW risk?',
+  options:[
+    'Regulators prevent it',
+    'Such an asset would attract huge demand → price bid up → expected return falls until equilibrium restores',
+    'High-return assets are always illegal',
+    'Standard deviation has a lower bound at the risk-free rate'
+  ], correct:1,
+  expl:'Equilibrium price-pressure: free lunches are competed away. The risk-return trade-off is enforced by supply and demand, not by a rule.'},
+
+{id:'p5.6', topic:'Risk & Return', diff:2, type:'mc',
+  q:'No-arbitrage condition states that:',
+  options:[
+    'Markets are always perfectly efficient',
+    'Identical cash flows must have identical prices (law of one price)',
+    'Insider trading is impossible',
+    'The Sharpe ratio is always positive'
+  ], correct:1,
+  expl:'No-arbitrage = the law of one price. If two assets have identical payoffs, they must trade at the same price, otherwise arbitrageurs would buy the cheap one and sell the expensive one until prices converge.'},
+
+{id:'p5.7', topic:'Risk & Return', diff:2, type:'mc',
+  q:'Consumption smoothing implies:',
+  options:[
+    'Households want to spend all current income immediately',
+    'Households prefer steady consumption over time, so they save when income is high and borrow when income is low',
+    'Households are indifferent to when they consume',
+    'Borrowing is irrational'
+  ], correct:1,
+  expl:'Marginal utility is decreasing → smoother consumption beats lumpy. This drives the supply of capital (saving) and demand for capital (borrowing) that financial markets exist to match.'},
+
+/* ---------- PART 6 ---------- */
+{id:'p6.1', topic:'Asymmetric Info', diff:1, type:'mc',
+  q:'Adverse selection occurs:',
+  options:[
+    'After the contract is signed',
+    'Before the contract is signed (hidden information)',
+    'Only in insurance markets',
+    'Only when borrowers default'
+  ], correct:1,
+  expl:'Mnemonic: Adverse selection = before, hidden information. Moral hazard = after, hidden action.'},
+
+{id:'p6.2', topic:'Asymmetric Info', diff:1, type:'mc',
+  q:'Moral hazard occurs:',
+  options:[
+    'Before the contract (information advantage)',
+    'After the contract (hidden actions create risk for the other party)',
+    'Only in stock markets',
+    'Only when interest rates rise'
+  ], correct:1,
+  expl:'After the contract, the informed party can take hidden actions whose downside falls on the counterparty.'},
+
+{id:'p6.3', topic:'Asymmetric Info', diff:2, type:'mc',
+  q:'In Akerlof\'s "lemons" market, the equilibrium is:',
+  options:[
+    'Only good cars trade',
+    'Only bad cars (lemons) trade — good ones are withdrawn because buyers will only pay average prices',
+    'Prices rise indefinitely',
+    'Equal numbers of good and bad cars trade'
+  ], correct:1,
+  expl:'Buyers cannot tell good from bad → they offer average price → owners of good cars pull out → only lemons left → market shrinks or collapses. The financial-market analogue is good firms refusing the average rate offered to a pool of unknown borrowers.'},
+
+{id:'p6.4', topic:'Asymmetric Info', diff:2, type:'multi',
+  q:'Which of the following REDUCE adverse selection? (Pick all)',
+  options:[
+    'Screening (banks check creditworthiness before lending)',
+    'Collateral (pledged security)',
+    'Restrictive covenants',
+    'Rating agencies',
+    'Signalling (audits, management ownership)',
+    'Mandatory disclosure',
+    'Increasing leverage',
+    'Letting borrowers self-certify with no checks'
+  ], correct:[0,1,2,3,4,5],
+  expl:'All standard mitigations are about producing or revealing information BEFORE the deal. The last two (more leverage, no checks) make adverse selection worse.'},
+
+{id:'p6.5', topic:'Asymmetric Info', diff:2, type:'multi',
+  q:'Which mitigate MORAL HAZARD? (Pick all)',
+  options:[
+    'Ongoing monitoring',
+    'Restrictive covenants',
+    'Equity requirements / "skin in the game"',
+    'Insurance deductibles',
+    'Performance-based pay (stock, options)',
+    'Shorter loan maturities',
+    'Removing all reporting requirements'
+  ], correct:[0,1,2,3,4,5],
+  expl:'Moral-hazard tools change incentives or visibility AFTER the deal. The last option removes oversight — that\'s the opposite.'},
+
+{id:'p6.6', topic:'Asymmetric Info', diff:3, type:'mc',
+  q:'A firm borrows claiming a safe project but uses funds for a riskier one. This is a textbook case of:',
+  options:['Adverse selection','Moral hazard','Insider trading','Liquidity risk'],
+  correct:1,
+  expl:'Hidden ACTION after the contract → moral hazard. The lender bears the downside if the gamble fails.'},
+
+/* ---------- PART 7 ---------- */
+{id:'p7.1', topic:'Banks & Crisis', diff:1, type:'mc',
+  q:'Fractional reserve banking means:',
+  options:[
+    'Banks must hold 100% of deposits as reserves',
+    'Banks hold only a fraction of deposits as reserves; the rest is lent out',
+    'Customers must keep a minimum balance',
+    'Each bank is owned in fractions by the central bank'
+  ], correct:1,
+  expl:'Banks fund long-term loans with short-term deposits — only a fraction sits as reserves. This creates the maturity mismatch that makes bank runs possible.'},
+
+{id:'p7.2', topic:'Banks & Crisis', diff:2, type:'mc',
+  q:'A bank with good assets but unable to convert them to cash quickly enough is:',
+  options:[
+    'Insolvent',
+    'Illiquid',
+    'Both insolvent and illiquid',
+    'Neither — it is fine'
+  ], correct:1,
+  expl:'Illiquid: liabilities > immediately available cash, but assets > liabilities long-term. Insolvent: assets < liabilities (negative equity). A bank run can turn an illiquid bank insolvent through fire-sale prices.'},
+
+{id:'p7.3', topic:'Banks & Crisis', diff:2, type:'multi',
+  q:'Which measures reduce the risk of bank runs? (Pick all)',
+  options:[
+    'Deposit insurance',
+    'Lender of last resort (central bank lending against collateral)',
+    'Capital requirements (Basel III)',
+    'Liquidity requirements (LCR / NSFR)',
+    'Removing reserve requirements entirely',
+    'Allowing unlimited leverage'
+  ], correct:[0,1,2,3],
+  expl:'The four standard tools. The last two would make runs more likely, not less.'},
+
+{id:'p7.4', topic:'Banks & Crisis', diff:1, type:'short',
+  q:'In securitization, what does the abbreviation MBS stand for? (one phrase)',
+  correct:['mortgage backed securities','mortgage-backed securities','mortgage backed security','mortgage-backed security'],
+  expl:'MBS = Mortgage-Backed Securities. ABS = Asset-Backed Securities (for non-mortgage loan pools).'},
+
+{id:'p7.5', topic:'Banks & Crisis', diff:2, type:'mc',
+  q:'In a securitization structure, which tranche absorbs LOSSES first?',
+  options:['Senior (AAA)','Mezzanine','Equity / first-loss tranche','All tranches equally'],
+  correct:2,
+  expl:'Equity tranche takes the first losses, then mezzanine, then senior. That\'s the entire point of tranching — repackaging cash flows so the senior tranche can be rated AAA.'},
+
+{id:'p7.6', topic:'Banks & Crisis', diff:3, type:'multi',
+  q:'Which were KEY drivers of the 2007–2009 crisis? (Pick all that apply)',
+  options:[
+    'Housing bubble and easy credit',
+    'Subprime / NINJA loans',
+    'Securitization of bad loans into "AAA" products',
+    'Rating agency failures',
+    'High leverage at investment banks (30:1+)',
+    'Shadow banking outside regulation',
+    'A coordinated currency devaluation',
+    'Lehman Brothers bankruptcy triggering interbank panic',
+    'The euro debt ceiling'
+  ], correct:[0,1,2,3,4,5,7],
+  expl:'Seven core drivers. Coordinated devaluation and the "euro debt ceiling" are not real factors.'},
+
+{id:'p7.7', topic:'Banks & Crisis', diff:2, type:'mc',
+  q:'Why did "originate-to-distribute" worsen asymmetric information?',
+  options:[
+    'Originating banks no longer needed to monitor borrowers because they sold the risk on',
+    'It was illegal',
+    'Borrowers had to disclose more',
+    'Rating agencies became more conservative'
+  ], correct:0,
+  expl:'When the originator keeps the loan, they have skin in the game and screen carefully. When they sell it on, that incentive disappears — exactly the moral-hazard / adverse-selection cocktail that fed the crisis.'},
+
+/* ---------- PART 8 ---------- */
+{id:'p8.1', topic:'Funds', diff:1, type:'mc',
+  q:'Which characterises PASSIVE management?',
+  options:[
+    'Aim to beat a benchmark via stock picking',
+    'Replicate an index as cheaply as possible',
+    'High turnover and high fees',
+    'Reliant on stock-picking analysts'
+  ], correct:1,
+  expl:'Passive = replicate the index, low fees (0.03–0.3%), low turnover, near-zero tracking error. Active = beat the benchmark, high fees (1–2%), high turnover.'},
+
+{id:'p8.2', topic:'Funds', diff:2, type:'multi',
+  q:'Which 5+ features distinguish ACTIVE from passive management? (Pick the active-strategy traits)',
+  options:[
+    'Goal: beat a benchmark / generate alpha',
+    'High management costs (1–2%)',
+    'High turnover',
+    'Lower tax efficiency',
+    'Assumes markets are inefficient',
+    'High tracking error',
+    'Goal: replicate index cheaply',
+    'Near-zero tracking error',
+    'Assumes markets are efficient (EMH)'
+  ], correct:[0,1,2,3,4,5],
+  expl:'Six classic active features. The last three describe the passive side.'},
+
+{id:'p8.3', topic:'Funds', diff:2, type:'mc',
+  q:'The strongest empirical argument for PASSIVE management is:',
+  options:[
+    'Most active funds underperform their benchmark NET OF FEES',
+    'Active management is illegal in most countries',
+    'Passive funds always beat active funds before fees',
+    'Index funds avoid all market risk'
+  ], correct:0,
+  expl:'Costs and competition are passive\'s allies: in efficient markets it\'s very hard for active managers to net-of-fees consistently beat a low-cost index.'},
+
+{id:'p8.4', topic:'Funds', diff:3, type:'mc',
+  q:'Where is active management MOST plausibly worth its fees?',
+  options:[
+    'S&P 500 large-cap stocks',
+    'US Treasuries',
+    'Less efficient markets — small-cap, emerging markets, illiquid assets',
+    'ETFs tracking broad indices'
+  ], correct:2,
+  expl:'In information-poor or hard-to-arbitrage segments, skilled managers may still extract alpha. The efficient large-cap space is where passive dominates empirically.'},
+
+/* ---------- META / EXAM TACTICS ---------- */
+{id:'meta.1', topic:'Exam tactics', diff:1, type:'mc',
+  q:'Optimal answer structure on this exam is:',
+  options:[
+    'Long history of the topic, then a one-line definition',
+    'Definition first → explanation → example → mitigation/policy if relevant; max half a page',
+    'Bullet list of every keyword you remember',
+    'Personal opinion on the topic'
+  ], correct:1,
+  expl:'Define first, explain after. Half a page max. More text ≠ more points.'},
+];
+
+/* =========================================================================
+   GAME ENGINE
+   ========================================================================= */
+
+let mode = null;
+let queue = [];          // ordered list of question IDs to ask
+let idxInQueue = 0;
+let scoreEarned = 0;
+let scorePossible = 0;
+let answers = [];        // { id, correct, confidence, userAns }
+let leitner = {};        // id -> box (1..5)
+let consecutiveCorrect = {}; // id -> streak
+let timer = null, timeLeft = 0;
+
+const $ = sel => document.querySelector(sel);
+const home = $('#home'), quiz = $('#quiz'), results = $('#results');
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
+function pointValue(diff){ return diff; } // 1, 2, or 3 points
+function getQ(id){ return Q.find(q=>q.id===id); }
+
+document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => startMode(b.dataset.mode)));
+
+function startMode(m) {
+  mode = m;
+  scoreEarned = 0; scorePossible = 0; answers = []; idxInQueue = 0;
+  leitner = {}; consecutiveCorrect = {};
+
+  if (m === 'lightning') {
+    queue = shuffle(Q.map(q=>q.id)).slice(0,15);
+    $('#leitnerLegend').style.display = 'none';
+    $('#leitnerBoxes').style.display  = 'none';
+  } else if (m === 'mastery') {
+    Q.forEach(q => { leitner[q.id] = 1; consecutiveCorrect[q.id] = 0; });
+    queue = shuffle(Q.map(q=>q.id));
+    $('#leitnerLegend').style.display = 'flex';
+    $('#leitnerBoxes').style.display  = 'flex';
+  } else if (m === 'calc') {
+    queue = shuffle(Q.filter(q=>q.type==='numeric').map(q=>q.id));
+    $('#leitnerLegend').style.display = 'none';
+    $('#leitnerBoxes').style.display  = 'none';
+  } else if (m === 'exam') {
+    // Mimic exam pattern: 8 conceptual + 2 numeric, random spread of difficulties
+    const concept = shuffle(Q.filter(q=>q.type!=='numeric').map(q=>q.id)).slice(0,8);
+    const numeric = shuffle(Q.filter(q=>q.type==='numeric').map(q=>q.id)).slice(0,2);
+    queue = shuffle(concept.concat(numeric));
+    timeLeft = 30 * 60;
+    timer = setInterval(tick, 1000);
+    $('#leitnerLegend').style.display = 'none';
+    $('#leitnerBoxes').style.display  = 'none';
+  }
+
+  $('#modePill').textContent = ({lightning:'Lightning Round', mastery:'Mastery Mode', calc:'Calculation Drill', exam:'Exam Simulation'})[m];
+  home.classList.add('hidden');
+  results.classList.add('hidden');
+  quiz.classList.remove('hidden');
+  renderQuestion();
+}
+
+function tick(){
+  timeLeft--;
+  const m = Math.floor(timeLeft/60), s = timeLeft%60;
+  $('#timer').innerHTML = `<span class="pill warn">⏱ ${m}:${String(s).padStart(2,'0')}</span>`;
+  if (timeLeft<=0) { clearInterval(timer); finish(); }
+}
+
+function renderQuestion() {
+  if (idxInQueue >= queue.length) return finish();
+  updateTopBar();
+  const q = getQ(queue[idxInQueue]);
+  const block = $('#qBlock');
+  block.classList.remove('fade-in'); void block.offsetWidth; block.classList.add('fade-in');
+
+  let optionsHTML = '';
+  if (q.type === 'mc' || q.type === 'multi') {
+    optionsHTML = `<div class="options">${
+      q.options.map((o,i)=>`
+        <button class="opt" data-i="${i}">
+          <span class="marker">${q.type==='multi' ? '☐' : (i+1)}</span>
+          <span>${o}</span>
+        </button>`).join('')
+    }</div>`;
+  } else if (q.type === 'numeric') {
+    optionsHTML = `<div class="row"><input id="numIn" type="number" step="any" placeholder="enter number" /><button class="btn-primary" id="submitNum">Submit</button></div>`;
+  } else if (q.type === 'short') {
+    optionsHTML = `<div class="row"><input id="textIn" type="text" placeholder="type your answer" /><button class="btn-primary" id="submitText">Submit</button></div>`;
+  }
+
+  block.innerHTML = `
+    <div style="margin-top:12px">
+      <span class="pill muted">${q.topic}</span>
+      <span class="pill ${q.diff===1?'muted':q.diff===2?'':'warn'}">${q.diff===1?'Easy · 1pt':q.diff===2?'Medium · 2pt':'Hard · 3pt'}</span>
+      ${q.examTag?`<span class="examtag">★ Past exam: ${q.examTag}</span>`:''}
+    </div>
+    <div class="qtext">${q.q}</div>
+    <div class="conf" id="confRow">
+      <small style="margin-right:8px">Confidence:</small>
+      <button data-c="low">Low</button>
+      <button data-c="med">Medium</button>
+      <button data-c="high">High</button>
+    </div>
+    ${optionsHTML}
+    <div class="row" id="actionRow"></div>
+    <div id="fbSlot"></div>
+  `;
+
+  let confidence = null;
+  let multiSelected = new Set();
+
+  document.querySelectorAll('#confRow button').forEach(b => {
+    b.addEventListener('click', () => {
+      confidence = b.dataset.c;
+      document.querySelectorAll('#confRow button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  if (q.type === 'mc') {
+    document.querySelectorAll('.opt').forEach(el => el.addEventListener('click', () => {
+      if (el.classList.contains('locked')) return;
+      const i = +el.dataset.i;
+      lockAndJudge(q, i, confidence);
+    }));
+  } else if (q.type === 'multi') {
+    document.querySelectorAll('.opt').forEach(el => el.addEventListener('click', () => {
+      if (el.classList.contains('locked')) return;
+      const i = +el.dataset.i;
+      if (multiSelected.has(i)) { multiSelected.delete(i); el.classList.remove('selected'); el.querySelector('.marker').textContent='☐'; }
+      else { multiSelected.add(i); el.classList.add('selected'); el.querySelector('.marker').textContent='✓'; }
+    }));
+    $('#actionRow').innerHTML = `<button class="btn-primary" id="submitMulti">Submit selection</button>`;
+    $('#submitMulti').addEventListener('click', () => lockAndJudge(q, [...multiSelected].sort((a,b)=>a-b), confidence));
+  } else if (q.type === 'numeric') {
+    $('#submitNum').addEventListener('click', () => {
+      const v = parseFloat($('#numIn').value);
+      if (isNaN(v)) return;
+      lockAndJudge(q, v, confidence);
+    });
+    $('#numIn').addEventListener('keydown', e => { if (e.key==='Enter') $('#submitNum').click(); });
+  } else if (q.type === 'short') {
+    $('#submitText').addEventListener('click', () => {
+      const v = ($('#textIn').value||'').trim();
+      if (!v) return;
+      lockAndJudge(q, v, confidence);
+    });
+    $('#textIn').addEventListener('keydown', e => { if (e.key==='Enter') $('#submitText').click(); });
+  }
+}
+
+function lockAndJudge(q, userAns, confidence) {
+  // mark options as locked
+  document.querySelectorAll('.opt').forEach(el => el.classList.add('locked'));
+
+  const pts = pointValue(q.diff);
+  scorePossible += pts;
+  let isCorrect = false;
+
+  if (q.type === 'mc') {
+    isCorrect = (userAns === q.correct);
+    document.querySelectorAll('.opt').forEach(el => {
+      const i = +el.dataset.i;
+      if (i === q.correct) el.classList.add('correct');
+      else if (i === userAns) el.classList.add('wrong');
+    });
+  } else if (q.type === 'multi') {
+    const sel = JSON.stringify(userAns);
+    const cor = JSON.stringify([...q.correct].sort((a,b)=>a-b));
+    isCorrect = (sel === cor);
+    document.querySelectorAll('.opt').forEach(el => {
+      const i = +el.dataset.i;
+      const should = q.correct.includes(i);
+      const did    = userAns.includes(i);
+      if (should && did) el.classList.add('correct');
+      else if (should && !did) { el.classList.add('correct'); el.querySelector('.marker').textContent='+'; }
+      else if (!should && did) el.classList.add('wrong');
+    });
+  } else if (q.type === 'numeric') {
+    isCorrect = Math.abs(userAns - q.correct) <= q.tol;
+  } else if (q.type === 'short') {
+    const v = userAns.toLowerCase();
+    const accept = Array.isArray(q.correct) ? q.correct.map(s=>s.toLowerCase()) : [String(q.correct).toLowerCase()];
+    isCorrect = accept.includes(v);
+  }
+
+  if (isCorrect) scoreEarned += pts;
+  answers.push({id:q.id, correct:isCorrect, confidence, userAns});
+
+  // feedback
+  const fb = $('#fbSlot');
+  let workHTML = q.work ? `<div class="work">${q.work}</div>` : '';
+  let answerSummary = '';
+  if (q.type==='numeric') answerSummary = `<div><strong>Correct answer:</strong> ${q.correct}</div>`;
+  else if (q.type==='short') answerSummary = `<div><strong>Correct answer:</strong> ${Array.isArray(q.correct)?q.correct[0]:q.correct}</div>`;
+
+  fb.innerHTML = `
+    <div class="feedback ${isCorrect?'good':'bad'}">
+      <h4>${isCorrect?'✓ Correct':'✗ Not quite'}${confidence?` &nbsp;·&nbsp; you said: ${confidence} confidence`:''}</h4>
+      ${answerSummary}
+      <div style="margin-top:6px">${q.expl}</div>
+      ${workHTML}
+    </div>
+  `;
+
+  // Mastery: Leitner adjustment
+  if (mode === 'mastery') {
+    if (isCorrect) {
+      consecutiveCorrect[q.id] = (consecutiveCorrect[q.id]||0) + 1;
+      if (consecutiveCorrect[q.id] >= 2) {
+        leitner[q.id] = Math.min(5, (leitner[q.id]||1)+1);
+        consecutiveCorrect[q.id] = 0;
+      }
+    } else {
+      leitner[q.id] = 1;
+      consecutiveCorrect[q.id] = 0;
+      // re-queue this question to come back soon (3-7 questions later)
+      const back = idxInQueue + 3 + Math.floor(Math.random()*5);
+      queue.splice(Math.min(back, queue.length), 0, q.id);
+    }
+  }
+
+  $('#actionRow').innerHTML = `<button class="btn-primary" id="next">Next →</button>`;
+  $('#next').addEventListener('click', advance);
+  document.addEventListener('keydown', enterNext);
+}
+
+function enterNext(e){ if (e.key==='Enter') { document.removeEventListener('keydown', enterNext); $('#next')?.click(); } }
+
+function advance() {
+  document.removeEventListener('keydown', enterNext);
+  idxInQueue++;
+  if (mode === 'mastery') {
+    // continue until every question is in box 5
+    const allMastered = Q.every(q => (leitner[q.id]||1) >= 5);
+    if (allMastered) return finish();
+    if (idxInQueue >= queue.length) {
+      // refill queue with non-mastered items
+      const remaining = Q.filter(q => (leitner[q.id]||1) < 5).map(q=>q.id);
+      queue = queue.concat(shuffle(remaining));
+    }
+  }
+  renderQuestion();
+}
+
+function updateTopBar() {
+  const pct = mode==='mastery' ? leitnerProgressPct() : Math.round(100*idxInQueue/queue.length);
+  $('#progBar').style.width = pct + '%';
+  $('#scoreText').textContent = `${scoreEarned}/${scorePossible}`;
+  if (mode==='mastery') renderLeitnerBoxes();
+}
+
+function leitnerProgressPct() {
+  const total = Q.length * 5;
+  const got = Q.reduce((s,q)=>s + (leitner[q.id]||1), 0);
+  return Math.round(100*got/total);
+}
+
+function renderLeitnerBoxes() {
+  const counts = [0,0,0,0,0,0];
+  Q.forEach(q => counts[leitner[q.id]||1]++);
+  const html = [1,2,3,4,5].map(i => `<div class="box b${i}">${counts[i]}</div>`).join('');
+  $('#leitnerBoxes').innerHTML = html;
+}
+
+function finish() {
+  if (timer) { clearInterval(timer); timer = null; }
+  quiz.classList.add('hidden');
+  results.classList.remove('hidden');
+
+  const pct = scorePossible ? Math.round(100*scoreEarned/scorePossible) : 0;
+  let letter = 'F', note = 'Keep training';
+  if (pct === 100)        { letter = 'A';  note = 'Exam-ready ★'; }
+  else if (pct >= 90)     { letter = 'A-'; note = 'Almost perfect'; }
+  else if (pct >= 80)     { letter = 'B';  note = 'Solid pass'; }
+  else if (pct >= 70)     { letter = 'C';  note = 'Pass'; }
+  else if (pct >= 60)     { letter = 'D';  note = 'Borderline'; }
+  $('#gradeLetter').textContent = letter;
+  $('#gradePct').textContent    = `${scoreEarned} / ${scorePossible} points · ${pct}%`;
+  $('#gradeNote').textContent   = note;
+  $('#gradeNote').className     = 'pill ' + (pct===100?'good':pct>=80?'':'warn');
+
+  // topic table
+  const byTopic = {};
+  answers.forEach(a => {
+    const q = getQ(a.id);
+    byTopic[q.topic] = byTopic[q.topic] || {right:0, total:0};
+    byTopic[q.topic].total++;
+    if (a.correct) byTopic[q.topic].right++;
+  });
+  let table = '<tr><th>Topic</th><th>Accuracy</th><th class="bar">Bar</th></tr>';
+  Object.entries(byTopic).sort((a,b)=>(a[1].right/a[1].total)-(b[1].right/b[1].total)).forEach(([t,s]) => {
+    const p = Math.round(100*s.right/s.total);
+    table += `<tr><td>${t}</td><td>${s.right}/${s.total} · ${p}%</td><td class="bar"><div class="bar-inner"><div style="width:${p}%"></div></div></td></tr>`;
+  });
+  $('#topicTable').innerHTML = table;
+
+  // overconfidence list
+  const over = answers.filter(a => !a.correct && a.confidence === 'high');
+  if (!over.length) {
+    $('#overconfList').innerHTML = '<small>No overconfident misses — your calibration is solid.</small>';
+  } else {
+    $('#overconfList').innerHTML = over.map(a => {
+      const q = getQ(a.id);
+      return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><strong>${q.topic}:</strong> ${q.q}</div>`;
+    }).join('');
+  }
+}
+
+$('#replayMissed').addEventListener('click', () => {
+  const missed = answers.filter(a => !a.correct).map(a => a.id);
+  if (!missed.length) { alert('Nothing missed — perfect run!'); return; }
+  scoreEarned = 0; scorePossible = 0; answers = []; idxInQueue = 0;
+  queue = shuffle(missed);
+  mode = 'lightning';
+  $('#modePill').textContent = 'Replay (missed only)';
+  results.classList.add('hidden');
+  quiz.classList.remove('hidden');
+  renderQuestion();
+});
+$('#backHome').addEventListener('click', () => {
+  if (timer) { clearInterval(timer); timer = null; }
+  results.classList.add('hidden');
+  quiz.classList.add('hidden');
+  home.classList.remove('hidden');
+  $('#timer').innerHTML='';
+});
+
+// Number-key shortcuts for MC
+document.addEventListener('keydown', e => {
+  if (quiz.classList.contains('hidden')) return;
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= 9) {
+    const opts = document.querySelectorAll('.opt');
+    if (opts[n-1] && !opts[n-1].classList.contains('locked')) opts[n-1].click();
+  }
+});
+</script>
+</body>
+</html>
